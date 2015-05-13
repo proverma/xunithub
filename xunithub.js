@@ -1,0 +1,135 @@
+'use strict';
+
+var fs = require('fs')
+    , request = require('request')
+    , parseString = require('xml2js').parseString
+    , Entities = require('html-entities').AllHtmlEntities
+    , entities = new Entities()
+    , $q = require('q')
+    , url = require('url')
+    ;
+
+function xunithub(){
+}
+
+
+xunithub.prototype.getFailures = function(reportDir){
+    var xmlFiles = fs.readdirSync(reportDir)
+        , failureList = []
+        , self = this
+        , failureMessages
+        , errorObj
+        , defer = $q.defer()
+        ;
+
+    xmlFiles.forEach(function(fileName,index, arr) {
+        if (fileName[0] === '.') {
+            return;
+        }
+        failureMessages = self._parseReport(fs.readFileSync(reportDir+'/'+fileName,'utf8'));
+
+        failureMessages.then(function(val){
+
+            if(val.length > 0){
+                errorObj = {"fileName" : fileName, "failures" : val};
+                failureList.push(errorObj);
+            }
+
+            if( arr.length - 1 == index) {
+                defer.resolve(failureList);
+            }
+        });
+    });
+
+    return defer.promise;
+
+};
+
+
+xunithub.prototype._parseReport = function (data) {
+    var defer = $q.defer()
+        , failureMessages = []
+        , obj;
+
+    parseString(data.toString(), function (err, result) {
+        if(err) {
+            console.error(err);
+            process.exit(1);
+        }
+        try
+        {
+            result.testsuites.testsuite.forEach(function(testsuite) {
+                testsuite.testcase = testsuite.testcase || [];
+                testsuite.testcase.forEach(function(testcase) {
+                    if (testcase.failure) {
+                        obj = {};
+                        obj.classname = testcase.$.classname;
+                        obj.name = testcase.$.name;
+                        obj.message = entities.decode(testcase.failure[0].$.message);
+                        //obj.message = testcase.failure[0].$.message;
+                        failureMessages.push(obj);
+                    }
+                });
+            });
+        } catch (e) {
+            console.debug(e);
+        }
+        defer.resolve(failureMessages);
+    });
+    return defer.promise;
+};
+
+
+xunithub.prototype.markDownConverter = function(failureList) {
+
+    var errorMD = "";
+
+    if(failureList) {
+        errorMD += "## Failures" + "\n";
+        failureList.forEach(function (file) {
+            errorMD += "### " + file.fileName + " (" + file.failures.length + ") \n";
+            file.failures.forEach(function (f) {
+                errorMD += "+ __Test Class Name :__ _" + f.classname + "_\n";
+                errorMD += "+ __Test Case Name :__ _" + f.name + "_\n";
+                errorMD += "+ __Failure Message :__" + "\n\n" + "   ```" + "\n"
+                + f.message + "\n" + "   ```" + "\n\n";
+                errorMD += "    ___" + "\n";
+            })
+            errorMD += "___" + "\n";
+        });
+    }
+
+    return errorMD
+
+}
+
+xunithub.prototype.postReport = function(failureList, githubRepoUrl, githubAPIkey, pullRequestID) {
+
+   var errorData = this.markDownConverter(failureList)
+       , config = {
+            url: githubRepoUrl + '/issues/'+
+            pullRequestID+'/comments',
+            headers: {
+                'Authorization': 'token '+ githubAPIkey,
+                'Content-Type': 'application/json',
+                'User-Agent': 'git CL - node'
+            },
+            method: 'POST',
+            json : 'true',
+                body : errorData
+
+       }
+       ;
+
+
+    request(config, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            console.log("Comment Posted Successfully");
+        } else {
+            console.error(body);
+        }
+    });
+
+};
+
+module.exports = xunithub;
