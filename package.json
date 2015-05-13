@@ -1,7 +1,7 @@
 {
   "name": "xunithub",
   "description": "Parsing xunit reports, and posting them as Github comments ",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "contributors" : [
     {
       "name" : "Pranav Verma",
@@ -13,7 +13,9 @@
     }
   ],
   "repository" : "git://github.com/proverma/xunithub.git",
-  "main" : "./index.js",
+  "bin" :{
+    "xunithub" : "./index.js"
+  },
   "keywords" : ["github", "jenkins", "xunit", "test", "ci"],
   "dependencies" : {
       "request" :"2.55.0",
