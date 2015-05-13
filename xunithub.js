@@ -6,13 +6,23 @@ var fs = require('fs')
     , Entities = require('html-entities').AllHtmlEntities
     , entities = new Entities()
     , $q = require('q')
-    , url = require('url')
     ;
 
+/**
+ * @constructor
+ * @class
+ */
 function xunithub(){
 }
 
 
+/**
+ * Parses all xunit reports file in the given folder and returns
+ * promise list of all test failures found.
+ *
+ * @param reportDir ( Directory containing all xunit reports )
+ * @return promise
+ */
 xunithub.prototype.getFailures = function(reportDir){
     var xmlFiles = fs.readdirSync(reportDir)
         , failureList = []
@@ -45,7 +55,13 @@ xunithub.prototype.getFailures = function(reportDir){
 
 };
 
-
+/**
+ * parses xunit report and returns error messages if found
+ * this method gets called by getFailures
+ *
+ * @param data  (xunit report as string )
+ * @return promise
+ */
 xunithub.prototype._parseReport = function (data) {
     var defer = $q.defer()
         , failureMessages = []
@@ -66,7 +82,6 @@ xunithub.prototype._parseReport = function (data) {
                         obj.classname = testcase.$.classname;
                         obj.name = testcase.$.name;
                         obj.message = entities.decode(testcase.failure[0].$.message);
-                        //obj.message = testcase.failure[0].$.message;
                         failureMessages.push(obj);
                     }
                 });
@@ -79,6 +94,12 @@ xunithub.prototype._parseReport = function (data) {
     return defer.promise;
 };
 
+/**
+ * converts all xunit failures into md format
+ *
+ * @param failureList ( array containing all test failures )
+ * @return Error messages in markdown format
+ */
 
 xunithub.prototype.markDownConverter = function(failureList) {
 
@@ -94,14 +115,24 @@ xunithub.prototype.markDownConverter = function(failureList) {
                 errorMD += "+ __Failure Message :__" + "\n\n" + "   ```" + "\n"
                 + f.message + "\n" + "   ```" + "\n\n";
                 errorMD += "    ___" + "\n";
-            })
+            });
             errorMD += "___" + "\n";
         });
     }
 
     return errorMD
 
-}
+};
+
+/**
+ * converts failures into markdown format and posts them to github
+ *
+ * @param failureList ( array containing all test failures )
+ * @param githubRepoUrl ( github repo url )
+ * @param githubAPIkey ( github api key )
+ * @param pullRequestID ( PR ID number , where the comment will be posted )
+ * @return null
+ */
 
 xunithub.prototype.postReport = function(failureList, githubRepoUrl, githubAPIkey, pullRequestID) {
 
