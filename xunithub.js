@@ -6,13 +6,14 @@ var fs = require('fs')
     , Entities = require('html-entities').AllHtmlEntities
     , entities = new Entities()
     , $q = require('q')
+    , debug = require('debug')('xunithub')
     ;
 
 /**
  * @constructor
  * @class
  */
-function xunithub(){
+function xunithub() {
 }
 
 
@@ -23,7 +24,7 @@ function xunithub(){
  * @param reportDir ( Directory containing all xunit reports )
  * @return promise
  */
-xunithub.prototype.getFailures = function(reportDir){
+xunithub.prototype.getFailures = function (reportDir) {
     var xmlFiles = fs.readdirSync(reportDir)
         , failureList = []
         , self = this
@@ -32,20 +33,23 @@ xunithub.prototype.getFailures = function(reportDir){
         , defer = $q.defer()
         ;
 
-    xmlFiles.forEach(function(fileName,index, arr) {
-        if (fileName[0] === '.') {
+    debug("Files in the folder :" + xmlFiles);
+
+    xmlFiles.forEach(function (fileName, index, arr) {
+        if (fileName[0] === '.' || fileName.indexOf(".xml") === -1) {
             return;
         }
-        failureMessages = self._parseReport(fs.readFileSync(reportDir+'/'+fileName,'utf8'));
+        debug("Report File :" + fileName);
+        failureMessages = self._parseReport(fs.readFileSync(reportDir + '/' + fileName, 'utf8'));
+        debug("Failure Message : " + failureMessages);
+        failureMessages.then(function (val) {
 
-        failureMessages.then(function(val){
-
-            if(val.length > 0){
-                errorObj = {"fileName" : fileName, "failures" : val};
+            if (val.length > 0) {
+                errorObj = {"fileName": fileName, "failures": val};
                 failureList.push(errorObj);
             }
 
-            if( arr.length - 1 == index) {
+            if (arr.length - 1 == index) {
                 defer.resolve(failureList);
             }
         });
@@ -68,15 +72,14 @@ xunithub.prototype._parseReport = function (data) {
         , obj;
 
     parseString(data.toString(), function (err, result) {
-        if(err) {
+        if (err) {
             console.error(err);
             process.exit(1);
         }
-        try
-        {
-            result.testsuites.testsuite.forEach(function(testsuite) {
+        try {
+            result.testsuites.testsuite.forEach(function (testsuite) {
                 testsuite.testcase = testsuite.testcase || [];
-                testsuite.testcase.forEach(function(testcase) {
+                testsuite.testcase.forEach(function (testcase) {
                     if (testcase.failure) {
                         obj = {};
                         obj.classname = testcase.$.classname;
@@ -101,11 +104,11 @@ xunithub.prototype._parseReport = function (data) {
  * @return Error messages in markdown format
  */
 
-xunithub.prototype.markDownConverter = function(failureList) {
+xunithub.prototype.markDownConverter = function (failureList) {
 
     var errorMD = "";
 
-    if(failureList) {
+    if (failureList) {
         errorMD += "## Failures" + "\n";
         failureList.forEach(function (file) {
             errorMD += "### " + file.fileName + " (" + file.failures.length + ") \n";
@@ -134,30 +137,30 @@ xunithub.prototype.markDownConverter = function(failureList) {
  * @return null
  */
 
-xunithub.prototype.postReport = function(failureList, githubRepoUrl, githubAPIkey, pullRequestID) {
+xunithub.prototype.postReport = function (failureList, githubRepoUrl, githubAPIkey, pullRequestID) {
 
-   var errorData = this.markDownConverter(failureList)
-       , config = {
-            url: githubRepoUrl + '/issues/'+
-            pullRequestID+'/comments',
+    var errorData = this.markDownConverter(failureList)
+        , config = {
+            url: githubRepoUrl + '/issues/' +
+            pullRequestID + '/comments',
             headers: {
-                'Authorization': 'token '+ githubAPIkey,
+                'Authorization': 'token ' + githubAPIkey,
                 'Content-Type': 'application/json',
                 'User-Agent': 'git CL - node'
             },
             method: 'POST',
-            json : 'true',
-                body : errorData
+            json: {
+                body: errorData
+            }
 
-       }
-       ;
+        }
+        ;
+    request(config, function (error, response) {
 
-
-    request(config, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            console.log("Comment Posted Successfully");
+        if (!error && response.statusCode < 205) {
+            console.log("XunitHub : Comment Posted Successfully");
         } else {
-            console.error(body);
+            console.error("XunitHub : Error while posting, Recieved Http Status Code : " + response.statusCode);
         }
     });
 

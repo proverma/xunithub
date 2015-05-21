@@ -26,7 +26,12 @@ if (!isUrl(argv.g)) {
 
 //execute
 x.getFailures(argv.t).then(function(val){
-    x.postReport(val, argv.g, argv.k, argv.p);
+    if (val.length > 0) {
+        x.postReport(val, argv.g, argv.k, argv.p);
+    } else {
+        console.log("XunitHub : No failures found, nothing to post to Github")
+    }
+
 });
 
 
