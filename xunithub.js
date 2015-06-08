@@ -144,7 +144,6 @@ xunithub.prototype.postReport = function (failureList, githubRepoUrl, githubAPIk
             url: githubRepoUrl + '/issues/' +
             pullRequestID + '/comments',
             headers: {
-                'Authorization': 'token ' + githubAPIkey,
                 'Content-Type': 'application/json',
                 'User-Agent': 'git CL - node'
             },
@@ -152,9 +151,12 @@ xunithub.prototype.postReport = function (failureList, githubRepoUrl, githubAPIk
             json: {
                 body: errorData
             }
-
         }
         ;
+        
+    if (githubAPIkey) {
+        config.headers['Authorization'] = 'token ' + githubAPIkey;
+    }
     request(config, function (error, response) {
 
         if (!error && response.statusCode < 205) {
