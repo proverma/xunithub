@@ -1,7 +1,7 @@
 {
   "name": "xunithub",
   "description": "Parsing xunit reports, and posting them as Github comments ",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "contributors" : [
     {
       "name" : "Pranav Verma",
@@ -10,6 +10,10 @@
     {
       "name" : "Tokunbo George",
       "email" : "tokunbo.george@rackspace.com"
+    },
+    {
+      "name" : "J Andrichak",
+      "email" : "j.andrichak@rackspace.com"
     }
   ],
   "repository" : "git://github.com/proverma/xunithub.git",
