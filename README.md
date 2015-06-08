@@ -13,6 +13,13 @@ xunithub -g https://api.github.com/repos/(org/repo) -k (Github Access Token) -p 
 
 xunithub -g https://api.github.com/repos/proverma/arrow -k XXXXXXXXXXXXXXXXXXXXXXX -p 4 -t ~/Work/test-xunit
 
+## Usage without API key
+
+If you do not want to use an API key, you can use a username and password, or username and MFA token, by including it in the repo url like so:
+
+xunithub -g https://username:password@api.github.com/repos/(org/repo) -p (Github PR ID) -t (Xunit Test folder)
+
+xunithub -g https://proverma:XXXXXXXX@api.github.com/repos/proverma/arrow -p 4 -t ~/Work/test-xunit
 
 ## Help
 

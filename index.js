@@ -11,7 +11,7 @@ var url = require('url')
             .alias('k','github-api-key')
             .alias('p','github-pr-id')
             .alias('t','test-report-folder')
-            .demand(['g','k','p','t'])
+            .demand(['g','p','t'])
             .argv
     , xunithub = require('./xunithub')
     , x = new xunithub()
