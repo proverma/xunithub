@@ -21,6 +21,22 @@ xunithub -g https://username:password@api.github.com/repos/(org/repo) -p (Github
 
 xunithub -g https://proverma:XXXXXXXX@api.github.com/repos/proverma/arrow -p 4 -t ~/Work/test-xunit
 
+## Example Report
+
+Here is an example of what a report looks like in Github:
+
+### Failures
+#### YourTestSuite.xml (1) 
++ __Test Class Name :__ _YourTestSuite - YourTest_
++ __Test Case Name :__ _should not fail_
++ __Failure Message :__
+
+   ```
+undefined is not an object: myObject.myProperty
+   ```
+   ___
+___
+
 ## Help
 
 ### How to create Github Access token
