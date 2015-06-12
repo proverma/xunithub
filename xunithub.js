@@ -118,8 +118,10 @@ xunithub.prototype.markDownConverter = function (failureList) {
                 errorMD += "+ __Test Case Name :__ _" + f.name + "_\n";
                 errorMD += "+ __Failure Message :__" + "\n\n" + "   ```" + "\n"
                 + f.message + "\n" + "   ```" + "\n\n";
-                errorMD += "+ __Details :__" + "\n\n" + "   ```" + "\n"
-                + f.details + "\n" + "   ```" + "\n\n";
+                if (f.details !== '') {
+                    errorMD += "+ __Details :__" + "\n\n" + "   ```" + "\n"
+                    + f.details + "\n" + "   ```" + "\n\n";
+                }
                 errorMD += "    ___" + "\n";
             });
             errorMD += "___" + "\n";
