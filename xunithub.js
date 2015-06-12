@@ -85,7 +85,9 @@ xunithub.prototype._parseReport = function (data) {
                         obj.classname = testcase.$.classname;
                         obj.name = testcase.$.name;
                         obj.message = entities.decode(testcase.failure[0].$.message);
-                        obj.details = entities.decode(testcase.failure[0]._);
+                        if (testcase.failure[0]._) {
+                            obj.details = entities.decode(testcase.failure[0]._);
+                        }
                         failureMessages.push(obj);
                     }
                 });
@@ -118,7 +120,7 @@ xunithub.prototype.markDownConverter = function (failureList) {
                 errorMD += "+ __Test Case Name :__ _" + f.name + "_\n";
                 errorMD += "+ __Failure Message :__" + "\n\n" + "   ```" + "\n"
                 + f.message + "\n" + "   ```" + "\n\n";
-                if (f.details !== '') {
+                if (f.details) {
                     errorMD += "+ __Details :__" + "\n\n" + "   ```" + "\n"
                     + f.details + "\n" + "   ```" + "\n\n";
                 }
