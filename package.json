@@ -1,7 +1,7 @@
 {
   "name": "xunithub",
   "description": "Parsing xunit reports, and posting them as Github comments ",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "contributors" : [
     {
       "name" : "Pranav Verma",
