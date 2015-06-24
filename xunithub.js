@@ -93,7 +93,7 @@ xunithub.prototype._parseReport = function (data) {
                 });
             });
         } catch (e) {
-            console.debug(e);
+            console.error('Problem with processing test suites', e);
         }
         defer.resolve(failureMessages);
     });
